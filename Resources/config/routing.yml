@@ -1,0 +1,3 @@
+aescarcha_employee_homepage:
+    path:     /
+    defaults: { _controller: AescarchaEmployeeBundle:Default:index }
