@@ -6,8 +6,9 @@ use FOS\RestBundle\Controller\FOSRestController;
 use Symfony\Component\HttpFoundation\Request;
 
 use Aescarcha\BusinessBundle\Entity\Business;
-use Aescarcha\BusinessBundle\Transformer\BusinessTransformer;
-use Aescarcha\BusinessBundle\Transformer\ErrorTransformer;
+
+use Aescarcha\EmployeeBundle\Entity\Employee;
+use Aescarcha\EmployeeBundle\Transformer\EmployeeTransformer;
 
 use League\Fractal\Manager;
 use League\Fractal\Resource\Item;
@@ -22,9 +23,9 @@ class EmployeeController extends FOSRestController
     /**
      * @ApiDoc(
      *  resource=true,
-     *  description="Create a new Business Object",
-     *  input="Aescarcha\EmployeeBundle\Entity\Business",
-     *  output="Aescarcha\EmployeeBundle\Entity\Business",
+     *  description="Create a new Employee Object",
+     *  input="Aescarcha\EmployeeBundle\Entity\Employee",
+     *  output="Aescarcha\EmployeeBundle\Entity\Employee",
      *  statusCodes={
      *         201="Returned when create is successful",
      *         400="Returned when data is invalid",
@@ -33,29 +34,26 @@ class EmployeeController extends FOSRestController
      */
     public function postEmployeeAction( Request $request, Business $business )
     {
-        dump($business);
-        die("XAAA");
-        return $this->newAction( $request );
+        return $this->newAction( $request, $business );
     }
 
-
-    protected function newAction( Request $request )
+    
+    protected function newAction( Request $request, Business $business )
     {
-        $entity = new Business();
+        $entity = new Employee();
         $validator = $this->get('validator');
         $fractal = new Manager();
+        $em = $this->getDoctrine()->getManager();
 
-        $entity->setName($request->request->get('name'));
-        $entity->setDescription($request->request->get('description'));
-        $entity->setLatitude($request->request->get('latitude'));
-        $entity->setLongitude($request->request->get('longitude'));
+        $entity->setBusiness($business);
+        $entity->setRole($request->request->get('role'));
+        $entity->setUser($em->getRepository('AescarchaUserBundle:User')->find($request->request->get('userId')));
 
         $errors = $validator->validate($entity);
         if ( count($errors) === 0 ) {
-            $em = $this->getDoctrine()->getManager();
             $em->persist($entity);
             $em->flush();
-            $resource = new Item($entity, new BusinessTransformer);
+            $resource = new Item($entity, new EmployeeTransformer);
             $view = $this->view($fractal->createData($resource)->toArray(), 201);
             return $this->handleView($view);
         }

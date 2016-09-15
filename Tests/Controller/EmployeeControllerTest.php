@@ -36,11 +36,10 @@ class EmployeeControllerTest extends WebTestCase
                             "role": "WAITER"
                            }'
                          );
-        echo $this->client->getResponse()->getContent();
         $this->assertEquals(201, $this->client->getResponse()->getStatusCode());
         $response = json_decode($this->client->getResponse()->getContent(), true);
-        $this->assertEquals( 'my unit test', $response['data']['name'] );
-        $this->assertContains( '/businesses/', $response['data']['links']['self']['uri'] );
+        $this->assertEquals( 'WAITER', $response['data']['role'] );
+        $this->assertContains( '/employees/', $response['data']['links']['self']['uri'] );
     }
 
 
