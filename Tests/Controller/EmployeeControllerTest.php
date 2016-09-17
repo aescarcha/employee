@@ -105,6 +105,43 @@ class EmployeeControllerTest extends WebTestCase
     }
 
 
+    public function testUpdate()
+    {
+        $entity = $this->getOneEntity('AescarchaEmployeeBundle:Employee');
+        $crawler = $this->client->request(
+                         'PATCH',
+                         '/businesses/' . $entity->getBusiness()->getId() . '/employees/' . $entity->getId(),
+                         array(),
+                         array(),
+                         array('CONTENT_TYPE' => 'application/json'),
+                         '{"role": "ROLEEDIT"}'
+                         );
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
+        $response = json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertEquals( 'ROLEEDIT', $response['data']['role'] );
+        $this->assertContains( '/businesses/' . $entity->getBusiness()->getId() . '/employees/' . $entity->getId(), $response['data']['links']['self']['uri'] );
+    }
+
+    public function testUpdateBadData()
+    {
+        $entity = $this->getOneEntity('AescarchaEmployeeBundle:Employee');
+        $crawler = $this->client->request(
+                         'PATCH',
+                         '/businesses/' . $entity->getBusiness()->getId() . '/employees/' . $entity->getId(),
+                         array(),
+                         array(),
+                         array('CONTENT_TYPE' => 'application/json'),
+                         '{"role": ""}'
+                         );
+        $this->assertEquals(400, $this->client->getResponse()->getStatusCode());
+        $response = json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertEquals( 'Symfony\Component\Validator\ConstraintViolation', $response['error']['type'] );
+        $this->assertEquals( 'c1051bb4-d103-4f74-8988-acbcafc7fdc3', $response['error']['code'] );
+        $this->assertEquals( 'name', $response['error']['property'] );
+        $this->assertEquals( 'This value should not be blank.', $response['error']['message'] );
+        $this->assertEquals( '', $response['error']['doc_url'] );
+    }
+
     private function getOneEntity($repository = 'AescarchaBusinessBundle:Business' )
     {
         return $this->manager->getRepository( $repository )->findOneBy([]);
