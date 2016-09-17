@@ -14,6 +14,7 @@ class EmployeeControllerTest extends WebTestCase
         $classes = array(
             'Aescarcha\UserBundle\DataFixtures\ORM\LoadUserData',
             'Aescarcha\BusinessBundle\DataFixtures\ORM\LoadBusinessData',
+            'Aescarcha\EmployeeBundle\DataFixtures\ORM\LoadEmployeeData',
         );
         $this->loadFixtures($classes);
         $this->client = static::createClient();
@@ -67,10 +68,46 @@ class EmployeeControllerTest extends WebTestCase
         $this->assertEquals( '', $response['error']['doc_url'] );
     }
 
+    public function testGet()
+    {
+        $user = $this->getOneEntity('AescarchaUserBundle:User');
+        $employee = $this->getOneEntity('AescarchaEmployeeBundle:Employee');
+        $crawler = $this->client->request(
+                         'GET',
+                         '/businesses/' .$employee->getBusiness()->getId(). '/employees/' . $employee->getId(),
+                         array(),
+                         array(),
+                         array('CONTENT_TYPE' => 'application/json'));
+
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
+        $response = json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertEquals( $employee->getUser()->getId(), $response['data']['userId'] );
+        $this->assertEquals( $employee->getBusiness()->getId(), $response['data']['businessId'] );
+        $this->assertEquals( '/businesses/' .$employee->getBusiness()->getId(). '/employees/' . $employee->getId(), $response['data']['links']['self']['uri'] );
+    }
+
+    public function testGetFromBusiness()
+    {
+        $business = $this->getOneEntity();
+        $user = $this->getOneEntity('AescarchaUserBundle:User');
+        $crawler = $this->client->request(
+                         'GET',
+                         '/businesses/' . $business->getId() . '/employees',
+                         array(),
+                         array(),
+                         array('CONTENT_TYPE' => 'application/json'));
+
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
+        $response = json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertEquals( 'Fixtured', $response['data'][0]['role'] );
+        $this->assertEquals( $business->getId(), $response['data'][0]['businessId'] );
+        $this->assertEquals( $business->getUser()->getId(), $response['data'][0]['userId'] );
+    }
+
 
     private function getOneEntity($repository = 'AescarchaBusinessBundle:Business' )
     {
-        return $this->manager->getRepository( $repository )->findAll()[0];
+        return $this->manager->getRepository( $repository )->findOneBy([]);
     }
 
     /**

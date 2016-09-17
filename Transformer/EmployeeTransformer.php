@@ -30,7 +30,7 @@ class EmployeeTransformer extends Fractal\TransformerAbstract
             'links'   => [
                 'self' => [
                     'rel' => 'self',
-                    'uri' => '/employees/'.$entity->getId(),
+                    'uri' => '/businesses/'. $entity->getBusiness()->getId() . '/employees/' . $entity->getId() ,
                 ],
             ],
         ];

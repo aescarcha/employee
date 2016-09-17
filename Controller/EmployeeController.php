@@ -33,12 +33,66 @@ class EmployeeController extends FOSRestController
      *     }
      * )
      */
-    public function postEmployeeAction( Request $request, Business $business )
+    public function postEmployeesAction( Request $request, Business $business )
     {
         return $this->newAction( $request, $business );
     }
 
-    
+    /**
+     * @ApiDoc(
+     *  resource=true,
+     *  description="Finds an displays Business Employee entities",
+     *  output="Collection of Aescarcha\EmployeeBundle\Entity\Employee",
+     *  requirements={
+     *      {"name"="entity", "dataType"="uuid", "description"="Unique id of the business entity"}
+     *  },
+     *  statusCodes={
+     *         200="Returned when entity exists",
+     *         404="Returned when entity is not found",
+     *     }
+     * )
+     */
+    public function getEmployeesAction(Business $entity)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $fractal = new Manager();
+
+        $entities = $em->getRepository('AescarchaEmployeeBundle:Employee')->findBy(['business' => $entity]);
+
+        $resource = new Collection($entities, new EmployeeTransformer);
+        $view = $this->view($fractal->createData($resource)->toArray(), 200);
+
+        return $this->handleView($view);
+    }
+
+    /**
+     * @ApiDoc(
+     *  resource=true,
+     *  description="Finds an displays a Employee entity",
+     *  output="Aescarcha\EmployeeBundle\Entity\Employee",
+     *  requirements={
+     *      {"name"="business", "dataType"="uuid", "description"="Unique id of the business entity"},
+     *      {"name"="entity", "dataType"="uuid", "description"="Unique id of the employee entity"}
+     *  },
+     *  statusCodes={
+     *         200="Returned when entity exists",
+     *         404="Returned when entity is not found",
+     *     }
+     * )
+     */
+    public function getEmployeeAction( Business $business, Employee $entity)
+    {
+        $fractal = new Manager();
+
+        $resource = new Item($entity, new EmployeeTransformer);
+        $view = $this->view($fractal->createData($resource)->toArray(), 200);
+        return $this->handleView($view);
+    }
+
+
+    /**
+     * Handles Post and may hanlde PUT in the future
+     */
     protected function newAction( Request $request, Business $business )
     {
         $entity = new Employee();
