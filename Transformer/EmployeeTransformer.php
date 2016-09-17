@@ -25,6 +25,8 @@ class EmployeeTransformer extends Fractal\TransformerAbstract
         return [
             'id'      => $entity->getId(),
             'role'   => $entity->getRole(),
+            'userId'   => $entity->getUser()->getId(),
+            'businessId'   => $entity->getBusiness()->getId(),
             'links'   => [
                 'self' => [
                     'rel' => 'self',

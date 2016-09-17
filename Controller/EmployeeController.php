@@ -9,6 +9,7 @@ use Aescarcha\BusinessBundle\Entity\Business;
 
 use Aescarcha\EmployeeBundle\Entity\Employee;
 use Aescarcha\EmployeeBundle\Transformer\EmployeeTransformer;
+use Aescarcha\EmployeeBundle\Transformer\ErrorTransformer;
 
 use League\Fractal\Manager;
 use League\Fractal\Resource\Item;
@@ -43,14 +44,17 @@ class EmployeeController extends FOSRestController
         $entity = new Employee();
         $validator = $this->get('validator');
         $fractal = new Manager();
-        $em = $this->getDoctrine()->getManager();
+        $user = $this->get('fos_user.user_manager')->findUserBy(['id' => $request->request->get('user')]);
 
         $entity->setBusiness($business);
         $entity->setRole($request->request->get('role'));
-        $entity->setUser($em->getRepository('AescarchaUserBundle:User')->find($request->request->get('userId')));
+        if($user){
+            $entity->setUser($user);
+        }
 
         $errors = $validator->validate($entity);
         if ( count($errors) === 0 ) {
+            $em = $this->getDoctrine()->getManager();
             $em->persist($entity);
             $em->flush();
             $resource = new Item($entity, new EmployeeTransformer);
@@ -66,7 +70,7 @@ class EmployeeController extends FOSRestController
         return $this->handleView($view);
     }
 
-    protected function checkRights( Business $entity )
+    protected function checkRights( Employee $entity )
     {
         $user = $this->get('security.token_storage')->getToken()->getUser();
         
