@@ -89,6 +89,23 @@ class EmployeeController extends FOSRestController
         return $this->handleView($view);
     }
 
+    /**
+     * @ApiDoc(
+     *  resource=true,
+     *  description="Update an Employee Object",
+     *  input="Aescarcha\EmployeeBundle\Entity\Employee",
+     *  output="Aescarcha\EmployeeBundle\Entity\Employee",
+     *  statusCodes={
+     *         200="Returned when update is successful",
+     *         400="Returned when data is invalid",
+     *     }
+     * )
+     */
+    public function patchEmployeeAction( Request $request, Business $business, Employee $entity )
+    {
+        return $this->updateAction( $request, $business, $entity );
+    }
+
 
     /**
      * Handles Post and may hanlde PUT in the future
@@ -124,12 +141,41 @@ class EmployeeController extends FOSRestController
         return $this->handleView($view);
     }
 
+    /**
+     * Handle PATCH and POST
+     */
+    protected function updateAction( Request $request, Business $business, Employee $entity )
+    {
+        $this->checkRights( $entity );
+        
+        $validator = $this->get('validator');
+        $fractal = new Manager();
+
+        $entity->setRole($request->request->get('role'));
+        $errors = $validator->validate($entity);
+        if ( count($errors) === 0 ) {
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($entity);
+            $em->flush();
+            $resource = new Item($entity, new EmployeeTransformer);
+            $view = $this->view($fractal->createData($resource)->toArray(), 200);
+            return $this->handleView($view);
+        }
+
+        //This serializer won't set the "data" namespace for errors
+        $fractal->setSerializer(new ArraySerializer());
+        $resource = new Item($errors->get(0), new ErrorTransformer);
+        $view = $this->view($fractal->createData($resource)->toArray(), 400);
+
+        return $this->handleView($view);
+    }
+
     protected function checkRights( Employee $entity )
     {
         $user = $this->get('security.token_storage')->getToken()->getUser();
         
-        if($entity->getUser()->getId() !== $user->getId()){
-            throw $this->createAccessDeniedException( "You can't delete this entity." );
+        if($entity->getBusiness()->getUser()->getId() !== $user->getId()){
+            throw $this->createAccessDeniedException( "You don't own entity." );
         }
     }
 

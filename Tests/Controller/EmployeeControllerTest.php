@@ -137,7 +137,7 @@ class EmployeeControllerTest extends WebTestCase
         $response = json_decode($this->client->getResponse()->getContent(), true);
         $this->assertEquals( 'Symfony\Component\Validator\ConstraintViolation', $response['error']['type'] );
         $this->assertEquals( 'c1051bb4-d103-4f74-8988-acbcafc7fdc3', $response['error']['code'] );
-        $this->assertEquals( 'name', $response['error']['property'] );
+        $this->assertEquals( 'role', $response['error']['property'] );
         $this->assertEquals( 'This value should not be blank.', $response['error']['message'] );
         $this->assertEquals( '', $response['error']['doc_url'] );
     }
