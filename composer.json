@@ -1,0 +1,24 @@
+{
+    "name" : "aescarcha/employee",
+    "description" : "A bundle providing a RESTful API to handle Employees on BusinessBundle",
+    "type" : "symfony-bundle",
+    "authors" : [{
+        "name" : "Álvaro Escarcha"
+    }],
+    "keywords" : [
+        "symfony", "employee", "business"
+    ],
+    "license" : [
+        "MIT"
+    ],
+    "require" : {
+        "php": ">=5.5.9"
+    },
+    "autoload" : {
+        "psr-0" : {
+            "Aescarcha\\EmployeeBundle" : ""
+        }
+    },
+    "minimum-stability": "dev",
+    "target-dir" : "Aescarcha/EmployeeBundle"
+}
