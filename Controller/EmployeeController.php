@@ -106,6 +106,35 @@ class EmployeeController extends FOSRestController
         return $this->updateAction( $request, $business, $entity );
     }
 
+    /**
+     * @ApiDoc(
+     *  resource=true,
+     *  description="Deletes an Employee entity",
+     *  output="Aescarcha\EmployeeBundle\Entity\Employee",
+     *  requirements={
+     *      {"name"="entity", "dataType"="uuid", "description"="Unique id of the Employee entity"}
+     *  },
+     *  statusCodes={
+     *         200="Returned when entity was deleted",
+     *         404="Returned when entity is not found",
+     *     }
+     * )
+     */
+    public function deleteEmployeeAction(Business $business, Employee $entity)
+    {
+        $fractal = new Manager();
+
+        $this->checkRights( $entity, 'delete' );
+
+        $em = $this->getDoctrine()->getManager();
+        $em->remove($entity);
+        $em->flush();
+
+        $resource = new Item($entity, new EmployeeTransformer);
+        $view = $this->view($fractal->createData($resource)->toArray(), 200);
+        return $this->handleView($view);
+    }
+
 
     /**
      * Handles Post and may hanlde PUT in the future
@@ -170,13 +199,24 @@ class EmployeeController extends FOSRestController
         return $this->handleView($view);
     }
 
-    protected function checkRights( Employee $entity )
+    protected function checkRights( Employee $entity, $action = 'edit' )
     {
         $user = $this->get('security.token_storage')->getToken()->getUser();
-        
-        if($entity->getBusiness()->getUser()->getId() !== $user->getId()){
-            throw $this->createAccessDeniedException( "You don't own entity." );
+        switch ($action) {
+            case 'delete':
+                if($entity->getBusiness()->getUser()->getId() !== $user->getId() && 
+                   $entity->getUser()->getId() !== $user->getId()){
+                    throw $this->createAccessDeniedException( "You don't own entity." );
+                }
+                break;
+            
+            default:
+                if($entity->getBusiness()->getUser()->getId() !== $user->getId()){
+                    throw $this->createAccessDeniedException( "You don't own entity." );
+                }
+                break;
         }
+
     }
 
 }

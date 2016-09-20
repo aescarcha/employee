@@ -142,6 +142,31 @@ class EmployeeControllerTest extends WebTestCase
         $this->assertEquals( '', $response['error']['doc_url'] );
     }
 
+    public function testDelete()
+    {
+        $entity = $this->getOneEntity('AescarchaEmployeeBundle:Employee');
+        $crawler = $this->client->request(
+                                          'DELETE',
+                                          '/businesses/' . $entity->getBusiness()->getId() . '/employees/' . $entity->getId(),
+                                          array(),
+                                          array(),
+                                          array('CONTENT_TYPE' => 'application/json'));
+
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
+        $response = json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertEquals( 'Fixtured', $response['data']['role'] );
+        $this->assertEquals( $entity->getUser()->getId(), $response['data']['userId'] );
+        $this->assertEquals( $entity->getBusiness()->getId(), $response['data']['businessId'] );
+
+        $crawler = $this->client->request(
+                                          'GET',
+                                          '/businesses/' . $entity->getBusiness()->getId() . '/employees/' . $entity->getId(),
+                                          array(),
+                                          array(),
+                                          array('CONTENT_TYPE' => 'application/json'));
+        $this->assertEquals(404, $this->client->getResponse()->getStatusCode());
+    }
+
     private function getOneEntity($repository = 'AescarchaBusinessBundle:Business' )
     {
         return $this->manager->getRepository( $repository )->findOneBy([]);
