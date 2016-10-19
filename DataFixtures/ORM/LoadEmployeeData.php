@@ -10,14 +10,27 @@ class LoadEmployeeData implements FixtureInterface
     protected $data = [
         [
             'role' => 'Fixtured',
+            'user' => 1,
+            'business' => 0,
         ],
+        [
+            'role' => 'Employee',
+            'user' => 2,
+            'business' => 0,
+        ],
+        [
+            'role' => 'Employee',
+            'user' => 3,
+            'business' => 1,
+        ]
     ];
 
     public function load(ObjectManager $manager)
     {
-        $user = $manager->getRepository('AescarchaUserBundle:User')->find(1);
-        $business = $manager->getRepository('AescarchaBusinessBundle:Business')->findOneBy([]);
+        $businesses = $manager->getRepository('AescarchaBusinessBundle:Business')->findAll();
         foreach ($this->data as $key => $data) {
+            $user = $manager->getRepository('AescarchaUserBundle:User')->find($data['user']);
+            $business = $businesses[$data['business']];
             $entity = new Employee();
             $entity->setRole($data['role']);
             $entity->setUser($user);
