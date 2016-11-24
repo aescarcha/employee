@@ -16,11 +16,30 @@ class EmployeeControllerTest extends WebTestCase
             'Aescarcha\BusinessBundle\DataFixtures\ORM\LoadBusinessData',
             'Aescarcha\EmployeeBundle\DataFixtures\ORM\LoadEmployeeData',
         );
-        $this->loadFixtures($classes);
+        $this->loadFixtures($classes, null, 'doctrine', \Doctrine\Common\DataFixtures\Purger\ORMPurger::PURGE_MODE_TRUNCATE);
         $this->client = static::createClient();
         $this->manager = $this->client->getContainer()->get('doctrine.orm.entity_manager');
         $this->login();
     }
+
+    
+    protected function loadFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = null)
+    {
+        $container = $this->getContainer();
+        /** @var ManagerRegistry $registry */
+        $registry = $container->get($registryName);
+        /** @var ObjectManager $om */
+        $om = $registry->getManager($omName);
+        $connection = $om->getConnection();
+        if ($connection->getDriver() instanceof \Doctrine\DBAL\Driver\AbstractMySQLDriver) {
+            $connection->exec(sprintf('SET foreign_key_checks=%s', 0));
+        }
+        parent::loadFixtures($classNames, $omName , $registryName , $purgeMode);
+        if ($connection->getDriver() instanceof \Doctrine\DBAL\Driver\AbstractMySQLDriver) {
+            $connection->exec(sprintf('SET foreign_key_checks=%s', 1));
+        }
+    }
+
 
     public function testCreate()
     {
